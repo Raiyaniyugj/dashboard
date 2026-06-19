@@ -1,0 +1,6 @@
+{
+  "name": "Expense Tracker",
+  "description": "A highly polished, easy-to-use professional personal expense tracker with interactive visual dashboards, budget planning, data export/import, and an AI-powered financial wealth advisor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
