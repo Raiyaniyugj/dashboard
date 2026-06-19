@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts"
+    "dev": "tsx server.ts",
+    "build": "npm install --prefix ../frontend && npm run build --prefix ../frontend"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
