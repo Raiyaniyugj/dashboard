@@ -6,14 +6,14 @@ import mongoose from "mongoose";
 import cors from "cors";
 import { TransactionModel } from "./models/Transaction.js";
 import { ReminderModel } from "./models/Reminder.js";
+import { protect, AuthRequest } from "./middleware/auth.js";
+import authRouter from "./routes/auth.js";
 
 dotenv.config();
 
-const isProd = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// Set mongoose to output 'id' virtual when converting to JSON
 mongoose.set('toJSON', { virtuals: true });
 
 if (!MONGODB_URI) {
@@ -28,19 +28,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// REST API: Transactions
-app.get("/api/transactions", async (req, res) => {
+// ─── Auth Routes (public) ─────────────────────────────────────────────────────
+app.use("/api/auth", authRouter);
+
+// ─── Transactions (protected) ─────────────────────────────────────────────────
+app.get("/api/transactions", protect, async (req: AuthRequest, res) => {
   try {
-    const list = await TransactionModel.find().sort({ date: -1 });
+    const list = await TransactionModel.find({ userId: req.userId }).sort({ date: -1 });
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/transactions", async (req, res) => {
+app.post("/api/transactions", protect, async (req: AuthRequest, res) => {
   try {
-    const tx = new TransactionModel(req.body);
+    const tx = new TransactionModel({ ...req.body, userId: req.userId });
     await tx.save();
     res.status(201).json(tx);
   } catch (err: any) {
@@ -48,37 +51,42 @@ app.post("/api/transactions", async (req, res) => {
   }
 });
 
-app.put("/api/transactions/:id", async (req, res) => {
+app.put("/api/transactions/:id", protect, async (req: AuthRequest, res) => {
   try {
-    const tx = await TransactionModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const tx = await TransactionModel.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      req.body,
+      { new: true }
+    );
+    if (!tx) return res.status(404).json({ error: "Transaction not found." });
     res.json(tx);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.delete("/api/transactions/:id", async (req, res) => {
+app.delete("/api/transactions/:id", protect, async (req: AuthRequest, res) => {
   try {
-    await TransactionModel.findByIdAndDelete(req.params.id);
+    await TransactionModel.findOneAndDelete({ _id: req.params.id, userId: req.userId });
     res.json({ success: true });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// REST API: Reminders
-app.get("/api/reminders", async (req, res) => {
+// ─── Reminders (protected) ────────────────────────────────────────────────────
+app.get("/api/reminders", protect, async (req: AuthRequest, res) => {
   try {
-    const list = await ReminderModel.find().sort({ date: 1 });
+    const list = await ReminderModel.find({ userId: req.userId }).sort({ date: 1 });
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/reminders", async (req, res) => {
+app.post("/api/reminders", protect, async (req: AuthRequest, res) => {
   try {
-    const r = new ReminderModel(req.body);
+    const r = new ReminderModel({ ...req.body, userId: req.userId });
     await r.save();
     res.status(201).json(r);
   } catch (err: any) {
@@ -86,26 +94,31 @@ app.post("/api/reminders", async (req, res) => {
   }
 });
 
-app.put("/api/reminders/:id", async (req, res) => {
+app.put("/api/reminders/:id", protect, async (req: AuthRequest, res) => {
   try {
-    const r = await ReminderModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const r = await ReminderModel.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      req.body,
+      { new: true }
+    );
+    if (!r) return res.status(404).json({ error: "Reminder not found." });
     res.json(r);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-app.delete("/api/reminders/:id", async (req, res) => {
+app.delete("/api/reminders/:id", protect, async (req: AuthRequest, res) => {
   try {
-    await ReminderModel.findByIdAndDelete(req.params.id);
+    await ReminderModel.findOneAndDelete({ _id: req.params.id, userId: req.userId });
     res.json({ success: true });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-// API Route: AI Insights Advisor
-app.post("/api/insights", async (req, res) => {
+// ─── AI Insights (protected) ──────────────────────────────────────────────────
+app.post("/api/insights", protect, async (req: AuthRequest, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
@@ -116,26 +129,21 @@ app.post("/api/insights", async (req, res) => {
     }
 
     const { transactions, currentMonth } = req.body;
-
     if (!transactions || !Array.isArray(transactions)) {
       return res.status(400).json({ error: "Invalid data", message: "Missing transactions data array." });
     }
 
-    // Quick offline calculations to feed into the prompt as meta-facts
     const incomeList = transactions.filter((t: any) => t.type === 'income');
     const expenseList = transactions.filter((t: any) => t.type === 'expense');
-
     const totalIncome = incomeList.reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
     const totalExpense = expenseList.reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0);
     const netSavings = totalIncome - totalExpense;
     const savingsRate = totalIncome > 0 ? ((netSavings / totalIncome) * 100).toFixed(1) : "0.0";
 
-    // Format transaction summary
     const transactionSummaries = expenseList.slice(0, 15).map((t: any) => {
       return `- ${t.date} | ${t.title} | ₹${t.amount} | "${t.note || 'No note'}"`;
     }).join("\n");
 
-    // Construct prompt
     const promptText = `
 Analyze the following personal financial data for ${currentMonth || 'the current month'} and provide a professional, highly encouraging wealth audit and savings advisory.
 
@@ -164,12 +172,8 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
 `;
 
     const ai = new GoogleGenAI({
-      apiKey: apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        }
-      }
+      apiKey,
+      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } }
     });
 
     const response = await ai.models.generateContent({
@@ -181,11 +185,9 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
       }
     });
 
-    const insightsText = response.text || "Your financial advisor is compiling numbers. Please request insights again in a moment.";
-
     return res.json({
       success: true,
-      insights: insightsText
+      insights: response.text || "Your financial advisor is compiling numbers. Please request insights again in a moment."
     });
 
   } catch (err: any) {
@@ -198,7 +200,7 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
   }
 });
 
-// Support Production static routes
+// ─── Production Static Files ───────────────────────────────────────────────────
 const distPath = path.join(process.cwd(), "..", "frontend", "dist");
 app.use(express.static(distPath));
 app.get("*", (req, res) => {
