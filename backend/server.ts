@@ -11,7 +11,7 @@ import authRouter from "./routes/auth.js";
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.set('toJSON', { virtuals: true });
@@ -207,6 +207,10 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Expense Tracker backend server running at: http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Expense Tracker backend server running at: http://localhost:${PORT}`);
+  });
+}
+
+export default app;
