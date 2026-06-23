@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { TrendingUp, Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 interface Props {
   onNavigate: (page: 'register' | 'forgot') => void;
 }
 
 export default function Login({ onNavigate }: Props) {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -148,6 +149,35 @@ export default function Login({ onNavigate }: Props) {
                 <><LogIn className="w-4 h-4" /> Sign In</>
               )}
             </button>
+            
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(219,226,239,0.2)' }} />
+              <span className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'rgba(219,226,239,0.6)' }}>Or</span>
+              <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(219,226,239,0.2)' }} />
+            </div>
+
+            <div className="flex justify-center pb-2">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  if (credentialResponse.credential) {
+                    setError('');
+                    setLoading(true);
+                    try {
+                      await loginWithGoogle(credentialResponse.credential);
+                    } catch (err: any) {
+                      setError(err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+                onError={() => {
+                  setError('Google Login Failed');
+                }}
+                theme="outline"
+                shape="pill"
+              />
+            </div>
           </form>
 
           {/* Footer */}

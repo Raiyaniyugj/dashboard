@@ -84,7 +84,7 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
       let dateLabel = '';
       try {
         const parsedDate = new Date(t.date + 'T00:00:00');
-        dateLabel = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+        dateLabel = parsedDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
       } catch (e) {
         dateLabel = t.date;
       }
@@ -365,14 +365,14 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
                 {transactions.slice(0, 5).map((t) => (
                   <tr key={t.id} className="hover:bg-slate-50/50 transition">
                     <td className="py-3 font-mono text-slate-500">
-                      {new Date(t.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                      {new Date(t.date + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
                     </td>
                     <td className="py-3 font-sans font-medium text-slate-700">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-slate-100 text-slate-800 border-slate-200">
                         {t.title}
                       </span>
                     </td>
-                    <td className={`py-3 font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}`}>
+                    <td className={`py-3 font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-3 text-slate-500 truncate max-w-sm font-sans" title={t.note}>

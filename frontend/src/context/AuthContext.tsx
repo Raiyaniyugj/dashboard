@@ -11,6 +11,7 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   authFetch: (url: string, options?: RequestInit) => Promise<Response>;
@@ -66,6 +67,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveSession(data.token, data.user, rememberMe);
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Google login failed.');
+    saveSession(data.token, data.user, true);
+  };
+
   const register = async (name: string, email: string, password: string) => {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
@@ -103,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, authFetch }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, register, logout, authFetch }}>
       {children}
     </AuthContext.Provider>
   );

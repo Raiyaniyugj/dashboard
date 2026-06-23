@@ -2,8 +2,11 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import { UserModel } from '../models/User.js';
 import { protect, AuthRequest } from '../middleware/auth.js';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
@@ -53,6 +56,41 @@ router.post('/login', async (req, res) => {
     const expiresIn = rememberMe ? '30d' : '1d';
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn });
 
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Google OAuth Login ──────────────────────────────────────────────────────
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) return res.status(400).json({ error: 'Invalid Google token.' });
+
+    const { email, name, sub: googleId } = payload;
+
+    let user = await UserModel.findOne({ email });
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      user = await UserModel.create({ name, email, googleId });
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
     res.json({
       token,
       user: { id: user._id, name: user.name, email: user.email }

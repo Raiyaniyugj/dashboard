@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { TrendingUp, Mail, Lock, Eye, EyeOff, User, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 interface Props {
   onNavigate: (page: 'login') => void;
 }
 
 export default function Register({ onNavigate }: Props) {
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -148,6 +149,36 @@ export default function Register({ onNavigate }: Props) {
             >
               {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><UserPlus className="w-4 h-4" /> Create Account</>}
             </button>
+            
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(219,226,239,0.2)' }} />
+              <span className="text-xs uppercase tracking-wider font-semibold" style={{ color: 'rgba(219,226,239,0.6)' }}>Or</span>
+              <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(219,226,239,0.2)' }} />
+            </div>
+
+            <div className="flex justify-center pb-2">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  if (credentialResponse.credential) {
+                    setError('');
+                    setLoading(true);
+                    try {
+                      await loginWithGoogle(credentialResponse.credential);
+                    } catch (err: any) {
+                      setError(err.message);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+                onError={() => {
+                  setError('Google Login Failed');
+                }}
+                theme="outline"
+                shape="pill"
+                text="signup_with"
+              />
+            </div>
           </form>
 
           <div className="px-8 pb-8 text-center">

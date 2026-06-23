@@ -275,7 +275,7 @@ export default function RemindersList({
                       {/* Date Indicator Badge */}
                       <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 border border-slate-100 px-2 py-1 rounded-lg bg-slate-50 mt-3 w-fit">
                         <Clock className="w-3 h-3 text-slate-400" />
-                        <span>{new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span>{new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                       </div>
                     </div>
 
