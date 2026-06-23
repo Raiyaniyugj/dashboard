@@ -49,7 +49,7 @@ function AppContent() {
   // ─── Dashboard State ─────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories] = useState<Category[]>(DEFAULT_CATEGORIES);
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -306,7 +306,7 @@ function AppContent() {
 
         <div className="bg-transparent" id="active-screen-stage">
           {activeTab === 'dashboard' && (
-            <Dashboard transactions={transactions} categories={categories} onNavigateToTab={setActiveTab} />
+            <Dashboard transactions={transactions} onNavigateToTab={setActiveTab} />
           )}
           {activeTab === 'transactions' && (
             <TransactionList

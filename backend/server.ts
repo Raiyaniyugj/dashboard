@@ -177,7 +177,7 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
     });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-flash",
       contents: promptText,
       config: {
         systemInstruction: "You are an Elite Personal Financial Coach and Wealth Architect. Your goal is to guide clients toward financial independence with clear, realistic, and uplifting financial counseling. Always write in crisp, professional, structured Markdown with elegant headers, bold accents, and clear lists. Be encouraging, precise, and practical. Avoid boilerplate introductions or boring disclaimers.",
