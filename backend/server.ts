@@ -201,7 +201,11 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
 });
 
 // ─── Production Static Files ───────────────────────────────────────────────────
-const distPath = path.join(process.cwd(), "..", "frontend", "dist");
+import fs from "fs";
+let distPath = path.join(process.cwd(), "public");
+if (!fs.existsSync(path.join(distPath, "index.html"))) {
+  distPath = path.join(process.cwd(), "..", "frontend", "dist");
+}
 app.use(express.static(distPath));
 app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));

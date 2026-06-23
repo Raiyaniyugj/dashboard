@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "npm install --prefix ../frontend && npm run build --prefix ../frontend"
+    "build": "rm -rf ./public && npm install --prefix ../frontend && npm run build --prefix ../frontend && cp -r ../frontend/dist ./public"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
