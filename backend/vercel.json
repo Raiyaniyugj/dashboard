@@ -1,14 +1,13 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "public/**"
-    }
-  },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
