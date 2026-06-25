@@ -47,7 +47,8 @@ export default function ResetPassword({ token, onNavigate }: Props) {
     if (password.length < 6) return setError('Password must be at least 6 characters.');
     setLoading(true);
     try {
-      const res = await fetch(`/api/auth/reset-password/${token}`, {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${baseUrl}/api/auth/reset-password/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })

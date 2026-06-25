@@ -48,7 +48,8 @@ export default function AIAdvisor({ transactions, categories, budgets, goals }: 
     try {
       const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       
-      const response = await fetch('/api/insights', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${baseUrl}/api/insights`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

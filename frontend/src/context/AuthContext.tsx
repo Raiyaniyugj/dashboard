@@ -57,7 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string, rememberMe: boolean) => {
-    const res = await fetch('/api/auth/login', {
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, rememberMe })
@@ -68,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogle = async (credential: string) => {
-    const res = await fetch('/api/auth/google', {
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${baseUrl}/api/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential })
@@ -79,7 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const res = await fetch('/api/auth/register', {
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    const res = await fetch(`${baseUrl}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password })
@@ -104,7 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.getItem('wc_auth_token') ||
       sessionStorage.getItem('wc_auth_token');
 
-    return fetch(url, {
+    const baseUrl = import.meta.env.VITE_API_URL || '';
+    return fetch(`${baseUrl}${url}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',

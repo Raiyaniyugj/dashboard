@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "rm -rf ./public && npm install --prefix ../frontend && npm run build --prefix ../frontend && cp -r ../frontend/dist ./public"
+    "build": "echo 'No build step required for serverless deployment'"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,5 +1,4 @@
 import express from "express";
-import path from "path";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -25,7 +24,16 @@ if (!MONGODB_URI) {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://wealthcapitalapp.vercel.app',
+    'https://capital-front-raiyaniyugjs-projects.vercel.app',
+    'https://capital-front-git-main-raiyaniyugjs-projects.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // ─── Auth Routes (public) ─────────────────────────────────────────────────────
@@ -200,15 +208,9 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
   }
 });
 
-// ─── Production Static Files ───────────────────────────────────────────────────
-import fs from "fs";
-let distPath = path.join(process.cwd(), "public");
-if (!fs.existsSync(path.join(distPath, "index.html"))) {
-  distPath = path.join(process.cwd(), "..", "frontend", "dist");
-}
-app.use(express.static(distPath));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+// ─── Health Check ──────────────────────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "wealth-capital-api" });
 });
 
 if (!process.env.VERCEL) {
