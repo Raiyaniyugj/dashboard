@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 import { TrendingUp, Mail, ArrowLeft, AlertCircle, Send, Copy, CheckCircle } from 'lucide-react';
 
 interface Props {
@@ -17,8 +18,7 @@ export default function ForgotPassword({ onNavigate }: Props) {
     setError('');
     setLoading(true);
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || '';
-      const res = await fetch(`${baseUrl}/api/auth/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

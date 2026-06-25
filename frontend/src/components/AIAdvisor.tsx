@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, Category, Budget, SavingsGoal } from '../types';
+import { API_BASE_URL } from '../config';
 import Markdown from 'react-markdown';
 import { 
   Sparkles, 
@@ -48,8 +49,7 @@ export default function AIAdvisor({ transactions, categories, budgets, goals }: 
     try {
       const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       
-      const baseUrl = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(`${baseUrl}/api/insights`, {
+      const response = await fetch(`${API_BASE_URL}/api/insights`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
