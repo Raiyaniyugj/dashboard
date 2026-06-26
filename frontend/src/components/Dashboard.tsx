@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Transaction, Category, FinancialSummary } from '../types';
 import { ArrowUpRight, ArrowDownLeft, Wallet, Percent } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 import {
   ResponsiveContainer,
   BarChart,
@@ -19,6 +20,8 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ transactions, onNavigateToTab }: DashboardProps) {
+  const { theme } = useTheme();
+
   // 1. Calculate overall financial summary
   const summary = useMemo<FinancialSummary>(() => {
     let income = 0;
@@ -110,17 +113,18 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
       .slice(-10); // Show last 10 days of activities to avoid clutter
   }, [transactions]);
 
-
-
-
+  // Theme-aware chart colors
+  const chartAxisColor = theme === 'dark' ? '#94a3b8' : '#64748b';
+  const tooltipBg = theme === 'dark' ? '#1e293b' : '#ffffff';
+  const tooltipBorder = theme === 'dark' ? '#334155' : '#f1f5f9';
 
   return (
     <div className="space-y-6" id="dashboard-container">
       {/* 1. Header & Quick Analytics Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-sans font-medium tracking-tight text-slate-900">Financial Command Center</h2>
-          <p className="text-sm text-slate-500">Real-time balances, income flow, and budget checks.</p>
+          <h2 className="text-xl font-sans font-medium tracking-tight text-slate-900 dark:text-white">Financial Command Center</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Real-time balances, income flow, and budget checks.</p>
         </div>
         
 
@@ -129,66 +133,66 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
       {/* 2. KPI Cards Minimal Setup */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-grid">
         {/* Net Worth */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-100 shadow-xs space-y-3" id="net-balance-card">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3" id="net-balance-card">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Net Balance</span>
-            <div className="p-2 rounded-xl bg-slate-50 text-slate-700">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Net Balance</span>
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
               {summary.netSavings >= 0 ? '' : '-'}₹{Math.abs(summary.netSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-400 mt-1">Available cash pool</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Available cash pool</p>
           </div>
         </div>
 
         {/* Total Income */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-100 shadow-xs space-y-3" id="total-income-card">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3" id="total-income-card">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Total Income</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Income</span>
+            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
               <ArrowUpRight className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
               ₹{summary.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-400 mt-1">Earnings received</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Earnings received</p>
           </div>
         </div>
 
         {/* Total Expenses */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-100 shadow-xs space-y-3" id="total-expense-card">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3" id="total-expense-card">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Total Expenses</span>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Expenses</span>
+            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
               ₹{summary.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-400 mt-1">Cash outflow registered</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Cash outflow registered</p>
           </div>
         </div>
 
         {/* Savings Rate */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-100 shadow-xs space-y-3" id="savings-rate-card">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3" id="savings-rate-card">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Savings Rate</span>
-            <div className="p-2 rounded-xl bg-cyan-50 text-cyan-600">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Savings Rate</span>
+            <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400">
               <Percent className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-sans">
+            <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
               {summary.savingsRate.toFixed(1)}%
             </div>
-            <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
                   summary.savingsRate >= 30 ? 'bg-emerald-500' : summary.savingsRate >= 10 ? 'bg-cyan-500' : 'bg-rose-500'
@@ -204,29 +208,29 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="dashboard-charts-layout">
         
         {/* Cash Flow Timeline (2/3 width on large screen) */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-100 shadow-xs" id="cash-flow-chart-container">
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs" id="cash-flow-chart-container">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-sm font-sans font-semibold text-slate-800">Cash Flow History</h3>
-              <p className="text-xs text-slate-400">Income vs. Expenses across latest dates</p>
+              <h3 className="text-sm font-sans font-semibold text-slate-800 dark:text-slate-200">Cash Flow History</h3>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Income vs. Expenses across latest dates</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                <span className="text-slate-600">Income</span>
+                <span className="text-slate-600 dark:text-slate-400">Income</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                <span className="text-slate-600">Expense</span>
+                <span className="text-slate-600 dark:text-slate-400">Expense</span>
               </div>
             </div>
           </div>
 
           <div className="h-64 sm:h-72 w-full" id="timeline-chart">
             {dailyChartData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
                 <p className="text-sm">No transaction historical points to map</p>
-                <p className="text-xs text-slate-300">Add transactions to see visual cash lines</p>
+                <p className="text-xs text-slate-300 dark:text-slate-600">Add transactions to see visual cash lines</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -235,17 +239,18 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
                     dataKey="date" 
                     tickLine={false} 
                     axisLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11 }}
+                    tick={{ fill: chartAxisColor, fontSize: 11 }}
                   />
                   <YAxis 
                     tickLine={false} 
                     axisLine={false}
-                    tick={{ fill: '#64748b', fontSize: 11 }}
+                    tick={{ fill: chartAxisColor, fontSize: 11 }}
                     tickFormatter={(value) => `₹${value}`}
                   />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }}
+                    contentStyle={{ backgroundColor: tooltipBg, borderRadius: '12px', border: `1px solid ${tooltipBorder}`, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)' }}
                     formatter={(value: any) => [`₹${value}`, undefined]}
+                    labelStyle={{ color: chartAxisColor }}
                   />
                   <Bar dataKey="income" radius={[4, 4, 0, 0]} fill="#10b981" />
                   <Bar dataKey="expense" radius={[4, 4, 0, 0]} fill="#f59e0b" />
@@ -256,16 +261,16 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
         </div>
 
         {/* Expenses Category Breakout */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-xs flex flex-col justify-between" id="category-distribution-card">
+        <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between" id="category-distribution-card">
           <div>
-            <h3 className="text-sm font-sans font-semibold text-slate-800">Expense Allocation</h3>
-            <p className="text-xs text-slate-400 mb-6">Distribution by spending categories</p>
+            <h3 className="text-sm font-sans font-semibold text-slate-800 dark:text-slate-200">Expense Allocation</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">Distribution by spending categories</p>
             
             <div className="h-44 w-full relative flex items-center justify-center" id="pie-chart">
               {categoryChartData.length === 0 ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-2">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-2">
                   <p className="text-sm">No expense records</p>
-                  <p className="text-xs text-slate-300">File your first expense</p>
+                  <p className="text-xs text-slate-300 dark:text-slate-600">File your first expense</p>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -296,7 +301,7 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
                       })}
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #f1f5f9' }}
+                      contentStyle={{ backgroundColor: tooltipBg, borderRadius: '12px', border: `1px solid ${tooltipBorder}` }}
                       formatter={(value: any) => [`₹${value}`, undefined]}
                     />
                   </PieChart>
@@ -308,21 +313,21 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1 mt-4" id="category-chart-legend">
             {categoryChartData.slice(0, 4).map((item, index) => {
               const totalExp = summary.totalExpense || 1;
-              const percent = ((item.value / totalExp) * 105).toFixed(0); // scale gracefully
+              const percent = ((item.value / totalExp) * 100).toFixed(0);
               return (
                 <div key={index} className="flex items-center justify-between text-xs font-sans">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-full ${item.color.split(' ')[0]} border border-slate-200`} />
-                    <span className="text-slate-600 font-medium truncate max-w-28">{item.name}</span>
+                    <span className={`w-2.5 h-2.5 rounded-full ${item.color.split(' ')[0]} border border-slate-200 dark:border-slate-600`} />
+                    <span className="text-slate-600 dark:text-slate-400 font-medium truncate max-w-28">{item.name}</span>
                   </div>
-                  <div className="text-slate-500 font-medium">
-                    ₹{item.value.toLocaleString()} <span className="text-[10px] text-slate-400">({percent}%)</span>
+                  <div className="text-slate-500 dark:text-slate-400 font-medium">
+                    ₹{item.value.toLocaleString()} <span className="text-[10px] text-slate-400 dark:text-slate-500">({percent}%)</span>
                   </div>
                 </div>
               );
             })}
             {categoryChartData.length > 4 && (
-              <p className="text-[10px] text-center text-slate-400 mt-1 cursor-pointer hover:underline" onClick={() => onNavigateToTab('transactions')}>
+              <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 mt-1 cursor-pointer hover:underline" onClick={() => onNavigateToTab('transactions')}>
                 + {categoryChartData.length - 4} more entries. View full list.
               </p>
             )}
@@ -331,15 +336,15 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
       </div>
 
       {/* 4. Mini Transactions Feed */}
-      <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-xs" id="quick-activity-log">
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs" id="quick-activity-log">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-sans font-semibold text-slate-800">Recent Cash Updates</h3>
-            <p className="text-xs text-slate-400">Quick view of your latest entries</p>
+            <h3 className="text-sm font-sans font-semibold text-slate-800 dark:text-slate-200">Recent Cash Updates</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Quick view of your latest entries</p>
           </div>
           <button 
             onClick={() => onNavigateToTab('transactions')}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold cursor-pointer transition"
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer transition"
           >
             Manage Entries
           </button>
@@ -347,35 +352,35 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
 
         <div className="overflow-x-auto">
           {transactions.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">
+            <div className="py-8 text-center text-slate-400 dark:text-slate-500">
               <p className="text-sm font-medium">No ledger records on account yet.</p>
-              <p className="text-xs text-slate-300 mt-1">Add details regarding your income/expenses to populate the board.</p>
+              <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">Add details regarding your income/expenses to populate the board.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse" id="mini-transactions-table">
               <thead>
-                <tr className="border-b border-slate-100 text-slate-400 text-xs font-mono">
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 text-xs font-mono">
                   <th className="py-2.5 font-medium">DATE</th>
                   <th className="py-2.5 font-medium">TITLE</th>
                   <th className="py-2.5 font-bold">FLOW EFFECT</th>
                   <th className="py-2.5 font-medium">NOTES</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 text-xs">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800 text-xs">
                 {transactions.slice(0, 5).map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-3 font-mono text-slate-500">
+                  <tr key={t.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition">
+                    <td className="py-3 font-mono text-slate-500 dark:text-slate-400">
                       {new Date(t.date + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
                     </td>
-                    <td className="py-3 font-sans font-medium text-slate-700">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-slate-100 text-slate-800 border-slate-200">
+                    <td className="py-3 font-sans font-medium text-slate-700 dark:text-slate-300">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700">
                         {t.title}
                       </span>
                     </td>
-                    <td className={`py-3 font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <td className={`py-3 font-semibold ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                       {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="py-3 text-slate-500 truncate max-w-sm font-sans" title={t.note}>
+                    <td className="py-3 text-slate-500 dark:text-slate-400 truncate max-w-sm font-sans" title={t.note}>
                       {t.note || '—'}
                     </td>
                   </tr>

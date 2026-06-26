@@ -6,6 +6,7 @@ import TransactionModal from './components/TransactionModal';
 import TransactionList from './components/TransactionList';
 import RemindersList from './components/RemindersList';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -23,7 +24,9 @@ import {
   Info,
   Bell,
   LogOut,
-  User
+  User,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 type AuthPage = 'login' | 'register' | 'forgot' | 'reset';
@@ -31,6 +34,7 @@ type AuthPage = 'login' | 'register' | 'forgot' | 'reset';
 // ─── Inner App (has access to AuthContext) ────────────────────────────────────
 function AppContent() {
   const { user, logout, authFetch, loading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   // Auth page routing
   const [authPage, setAuthPage] = useState<AuthPage>('login');
@@ -228,35 +232,44 @@ function AppContent() {
   }
 
   // ─── Main Dashboard ───────────────────────────────────────────────────────────
-  const activeTabClass = "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs transition duration-200 shadow-sm cursor-pointer";
-  const inactiveTabClass = "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 font-semibold text-xs transition duration-200 cursor-pointer";
+  const activeTabClass = "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-xs transition duration-200 shadow-sm cursor-pointer";
+  const inactiveTabClass = "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 font-semibold text-xs transition duration-200 cursor-pointer";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans antialiased text-slate-800" id="main-layout">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 flex flex-col font-sans antialiased text-slate-800 dark:text-slate-200 transition-colors duration-300" id="main-layout">
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100" id="brand-header">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800" id="brand-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-white shadow-md">
-              <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-900 dark:bg-white border border-slate-800 dark:border-slate-200 text-white dark:text-slate-900 shadow-md">
+              <TrendingUp className="w-5 h-5 text-emerald-400 dark:text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-slate-900 leading-none">Wealth Capital</h1>
-              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400">Ledger Track v2</span>
+              <h1 className="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-none">Wealth Capital</h1>
+              <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 dark:text-slate-500">Ledger Track v2</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 border border-slate-100 px-3 py-1.5 rounded-xl bg-slate-50">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800">
               <Calendar className="w-3.5 h-3.5" />
               <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
             </div>
 
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="p-2 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition cursor-pointer"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {/* User badge + logout */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-semibold select-none border border-slate-800 shadow-xs">
-                <User className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-semibold select-none border border-slate-800 dark:border-slate-200 shadow-xs">
+                <User className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
                 <span className="hidden sm:inline max-w-[120px] truncate">{user.name}</span>
               </div>
               <button
@@ -264,7 +277,7 @@ function AppContent() {
                   showConfirm('Are you sure you want to sign out?', logout, 'Sign Out');
                 }}
                 title="Sign out"
-                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -275,7 +288,7 @@ function AppContent() {
 
       {/* Main */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-4 bg-white p-2.5 rounded-2xl border border-slate-100 shadow-2xs" id="navigation-bar">
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-4 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xs" id="navigation-bar">
           <div className="flex flex-wrap items-center gap-1.5" id="nav-tabs-list">
             <button onClick={() => setActiveTab('dashboard')} className={activeTab === 'dashboard' ? activeTabClass : inactiveTabClass}>
               <LayoutDashboard className="w-4 h-4" />
@@ -288,7 +301,7 @@ function AppContent() {
               <span className="sm:hidden">Entry</span>
             </button>
             <button onClick={() => setActiveTab('reminders')} className={activeTab === 'reminders' ? activeTabClass : inactiveTabClass}>
-              <Bell className="w-4 h-4 text-indigo-500" />
+              <Bell className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
               <span className="hidden sm:inline">Reminders</span>
               <span className="sm:hidden">Alerts</span>
             </button>
@@ -342,43 +355,43 @@ function AppContent() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3.5 rounded-xl border border-slate-100 bg-white/95 backdrop-blur-md shadow-lg animate-in slide-in-from-bottom duration-300 max-w-sm" id="custom-toast">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3.5 rounded-xl border border-slate-100 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md shadow-lg animate-in slide-in-from-bottom duration-300 max-w-sm" id="custom-toast">
           {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />}
           {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />}
           {toast.type === 'info' && <Info className="w-4 h-4 text-sky-500 shrink-0" />}
-          <span className="text-xs font-semibold text-slate-700">{toast.message}</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{toast.message}</span>
         </div>
       )}
 
       {/* Confirm Dialog */}
       {confirmDialog.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" id="confirm-modal-overlay">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+          <div className="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 border border-slate-100 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-slate-500" />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 p-5 border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               <span>{confirmDialog.title || 'Confirm Action'}</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-2 leading-relaxed">{confirmDialog.message}</p>
-            <div className="flex items-center justify-end gap-3 mt-5 pt-3 border-t border-slate-50">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">{confirmDialog.message}</p>
+            <div className="flex items-center justify-end gap-3 mt-5 pt-3 border-t border-slate-50 dark:border-slate-700">
               <button
                 onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg cursor-pointer transition"
+                className="px-3.5 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition"
               >Cancel</button>
               <button
                 onClick={() => {
                   confirmDialog.onConfirm();
                   setConfirmDialog(prev => ({ ...prev, isOpen: false }));
                 }}
-                className="px-3.5 py-2 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-lg cursor-pointer transition shadow-sm"
+                className="px-3.5 py-2 text-xs font-semibold text-white bg-slate-800 dark:bg-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-100 rounded-lg cursor-pointer transition shadow-sm"
               >Confirm</button>
             </div>
           </div>
         </div>
       )}
 
-      <footer className="py-6 mt-12 bg-white border-t border-slate-100 text-center text-xs text-slate-400 font-mono" id="main-footer">
+      <footer className="py-6 mt-12 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 dark:text-slate-500 font-mono" id="main-footer">
         © 2026 Wealth Capital Inc. • Logged in as {user.email}
       </footer>
     </div>
@@ -389,9 +402,11 @@ function AppContent() {
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock_client_id'}>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   );
 }
