@@ -2,11 +2,9 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { OAuth2Client } from 'google-auth-library';
+import admin from '../firebaseAdmin.js';
 import { UserModel } from '../models/User.js';
 import { protect, AuthRequest } from '../middleware/auth.js';
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
@@ -71,14 +69,8 @@ router.post('/google', async (req, res) => {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ error: 'Google credential is required.' });
 
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    if (!payload) return res.status(400).json({ error: 'Invalid Google token.' });
-
-    const { email, name, sub: googleId } = payload;
+    const decodedToken = await admin.auth().verifyIdToken(credential);
+    const { email, name, uid: googleId } = decodedToken;
 
     let user = await UserModel.findOne({ email });
     if (user) {

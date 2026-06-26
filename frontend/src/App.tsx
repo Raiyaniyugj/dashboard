@@ -11,8 +11,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-
 import {
   LayoutDashboard,
   Receipt,
@@ -401,12 +399,10 @@ function AppContent() {
 // ─── Root App with AuthProvider wrapper ───────────────────────────────────────
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock_client_id'}>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ThemeProvider>
-    </GoogleOAuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
