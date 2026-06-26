@@ -55,6 +55,27 @@ function AppContent() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ─── PWA Install Prompt State ──────────────────────────────────────────────────
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
+
   // Fetch data when user logs in
   useEffect(() => {
     if (!user) return;
@@ -254,6 +275,16 @@ function AppContent() {
               <Calendar className="w-3.5 h-3.5" />
               <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
             </div>
+
+            {/* Install App Button */}
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallApp}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+              >
+                Install App
+              </button>
+            )}
 
             {/* Dark Mode Toggle */}
             <button
