@@ -116,6 +116,16 @@ export default function TransactionList({
     return list;
   }, [transactions, search, typeFilter, sortBy, fromDate, toDate]);
 
+  const filteredTotals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    filteredAndSortedTransactions.forEach(t => {
+      if (t.type === 'income') income += t.amount;
+      else expense += t.amount;
+    });
+    return { income, expense, net: income - expense };
+  }, [filteredAndSortedTransactions]);
+
   // 2. Export Ledger directly to standard CSV format
   const handleExportCSV = () => {
     if (transactions.length === 0) {
@@ -365,6 +375,24 @@ export default function TransactionList({
 
       {/* Primary Table Ledger Grid */}
       <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden" id="ledger-table-card">
+        {search.trim() && filteredAndSortedTransactions.length > 0 && (
+          <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
+              Totals for "{search}"
+            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                Income: ₹{filteredTotals.income.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-rose-600 dark:text-rose-400 font-semibold">
+                Expense: ₹{filteredTotals.expense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-slate-900 dark:text-white font-bold">
+                Net: {filteredTotals.net >= 0 ? '+' : '-'}₹{Math.abs(filteredTotals.net).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           {filteredAndSortedTransactions.length === 0 ? (
             <div className="py-12 text-center text-slate-400 dark:text-slate-500">
