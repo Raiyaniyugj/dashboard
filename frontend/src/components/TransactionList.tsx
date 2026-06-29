@@ -375,10 +375,10 @@ export default function TransactionList({
 
       {/* Primary Table Ledger Grid */}
       <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden" id="ledger-table-card">
-        {search.trim() && filteredAndSortedTransactions.length > 0 && (
+        {filteredAndSortedTransactions.length > 0 && (
           <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
             <span className="font-medium text-slate-700 dark:text-slate-300">
-              Totals for "{search}"
+              {search.trim() ? `Totals for "${search}"` : 'Current View Totals'}
             </span>
             <div className="flex items-center gap-4">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
