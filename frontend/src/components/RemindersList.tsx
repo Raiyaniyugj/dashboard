@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Reminder } from '../types';
-import { Bell, Calendar, Plus, Trash2, CheckCircle, Clock, Info, IndianRupee, FileText } from 'lucide-react';
+import { Bell, Calendar, Plus, Trash2, CheckCircle, Clock, Info, IndianRupee, FileText, Edit3, X } from 'lucide-react';
 
 interface RemindersListProps {
   reminders: Reminder[];
   onAddReminder: (title: string, amount: number, date: string, subject: string) => void;
   onToggleReminder: (id: string) => void;
   onDeleteReminder: (id: string) => void;
+  onEditReminder: (id: string, payload: Partial<Reminder>) => void;
   onShowToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
   onShowConfirm?: (message: string, onConfirm: () => void, title?: string) => void;
 }
@@ -16,6 +17,7 @@ export default function RemindersList({
   onAddReminder,
   onToggleReminder,
   onDeleteReminder,
+  onEditReminder,
   onShowToast,
   onShowConfirm
 }: RemindersListProps) {
@@ -25,6 +27,7 @@ export default function RemindersList({
   const [subject, setSubject] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [error, setError] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const notify = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
     if (onShowToast) {
@@ -70,12 +73,40 @@ export default function RemindersList({
       return;
     }
 
-    onAddReminder(title.trim(), numAmount, date, subject.trim());
+    if (editingId) {
+      onEditReminder(editingId, { title: title.trim(), amount: numAmount, date, subject: subject.trim() });
+      setEditingId(null);
+    } else {
+      onAddReminder(title.trim(), numAmount, date, subject.trim());
+      notify('Successfully established a new bill reminder!', 'success');
+    }
+    
     setTitle('');
     setAmount('');
     setDate('');
     setSubject('');
-    notify('Successfully established a new bill reminder!', 'success');
+  };
+
+  const handleEditClick = (item: Reminder) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setAmount(item.amount.toString());
+    setDate(item.date);
+    setSubject(item.subject);
+    
+    const formElement = document.getElementById('create-reminder-card');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setTitle('');
+    setAmount('');
+    setDate('');
+    setSubject('');
+    setError('');
   };
 
   return (
@@ -89,8 +120,8 @@ export default function RemindersList({
         {/* Left: Add Reminder Form */}
         <div className="p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xs self-start" id="create-reminder-card">
           <h3 className="text-sm font-sans font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-1.5">
-            <Bell className="w-4 h-4 text-indigo-500 dark:text-indigo-400 animate-bounce" />
-            <span>Set Bill Reminder</span>
+            <Bell className={`w-4 h-4 text-indigo-500 dark:text-indigo-400 ${!editingId ? 'animate-bounce' : ''}`} />
+            <span>{editingId ? 'Edit Bill Reminder' : 'Set Bill Reminder'}</span>
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -158,12 +189,23 @@ export default function RemindersList({
 
             {error && <p className="text-xs text-rose-500 font-semibold">{error}</p>}
 
-            <button
-              type="submit"
-              className="w-full py-2.5 text-xs font-semibold text-white bg-slate-800 dark:bg-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-100 rounded-xl cursor-pointer transition shadow-xs"
-            >
-              Add Reminder
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="flex-1 py-2.5 text-xs font-semibold text-white bg-slate-800 dark:bg-white dark:text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-100 rounded-xl cursor-pointer transition shadow-xs"
+              >
+                {editingId ? 'Update Reminder' : 'Add Reminder'}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -248,6 +290,14 @@ export default function RemindersList({
                             title={item.completed ? 'Mark Active' : 'Mark Paid'}
                           >
                             <CheckCircle className="w-3.5 h-3.5" />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleEditClick(item)}
+                            className="p-1 px-1.5 rounded-lg border border-slate-100 dark:border-slate-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 text-slate-400 dark:text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 transition cursor-pointer"
+                            title="Edit Reminder"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
 
                           <button

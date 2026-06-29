@@ -219,6 +219,20 @@ function AppContent() {
     }
   };
 
+  const handleEditReminder = async (id: string, payload: Partial<Reminder>) => {
+    try {
+      const res = await authFetch(`/api/reminders/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      const updatedReminder = await res.json();
+      setReminders(prev => prev.map(r => r.id === id ? updatedReminder : r));
+      showToast('Reminder updated successfully!', 'success');
+    } catch {
+      showToast('Failed to update reminder.', 'error');
+    }
+  };
+
   const handleDeleteReminder = async (id: string) => {
     try {
       const res = await authFetch(`/api/reminders/${id}`, { method: 'DELETE' });
@@ -371,6 +385,7 @@ function AppContent() {
               onAddReminder={handleAddReminder}
               onToggleReminder={handleToggleReminder}
               onDeleteReminder={handleDeleteReminder}
+              onEditReminder={handleEditReminder}
               onShowToast={showToast}
               onShowConfirm={showConfirm}
             />
