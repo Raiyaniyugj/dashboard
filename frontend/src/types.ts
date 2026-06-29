@@ -43,6 +43,7 @@ export interface Reminder {
   id: string;
   title: string;
   amount: number;
+  paidAmount?: number;
   date?: string; // Legacy
   billingDate: string;
   dueDate: string;

@@ -190,11 +190,11 @@ function AppContent() {
   };
 
   // ─── Reminder Handlers ────────────────────────────────────────────────────────
-  const handleAddReminder = async (title: string, amount: number, billingDate: string, dueDate: string, subject: string) => {
+  const handleAddReminder = async (title: string, amount: number, paidAmount: number, billingDate: string, dueDate: string, subject: string) => {
     try {
       const res = await authFetch('/api/reminders', {
         method: 'POST',
-        body: JSON.stringify({ title, amount, billingDate, dueDate, subject, completed: false })
+        body: JSON.stringify({ title, amount, paidAmount, billingDate, dueDate, subject, completed: false })
       });
       const newReminder = await res.json();
       setReminders(prev => [...prev, newReminder]);

@@ -4,7 +4,7 @@ import { Bell, Calendar, Plus, Trash2, CheckCircle, Clock, Info, IndianRupee, Fi
 
 interface RemindersListProps {
   reminders: Reminder[];
-  onAddReminder: (title: string, amount: number, billingDate: string, dueDate: string, subject: string) => void;
+  onAddReminder: (title: string, amount: number, paidAmount: number, billingDate: string, dueDate: string, subject: string) => void;
   onToggleReminder: (id: string) => void;
   onDeleteReminder: (id: string) => void;
   onEditReminder: (id: string, payload: Partial<Reminder>) => void;
@@ -23,6 +23,7 @@ export default function RemindersList({
 }: RemindersListProps) {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
+  const [paidAmount, setPaidAmount] = useState('');
   const [billingDate, setBillingDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [subject, setSubject] = useState('');
@@ -78,16 +79,30 @@ export default function RemindersList({
       return;
     }
 
+    const numPaidAmount = parseFloat(paidAmount) || 0;
+    
+    // Auto-complete logic
+    const isCompleted = numPaidAmount >= numAmount;
+
     if (editingId) {
-      onEditReminder(editingId, { title: title.trim(), amount: numAmount, billingDate, dueDate, subject: subject.trim() });
+      onEditReminder(editingId, { 
+        title: title.trim(), 
+        amount: numAmount, 
+        paidAmount: numPaidAmount, 
+        billingDate, 
+        dueDate, 
+        subject: subject.trim(),
+        completed: isCompleted
+      });
       setEditingId(null);
     } else {
-      onAddReminder(title.trim(), numAmount, billingDate, dueDate, subject.trim());
+      onAddReminder(title.trim(), numAmount, numPaidAmount, billingDate, dueDate, subject.trim());
       notify('Successfully established a new bill reminder!', 'success');
     }
     
     setTitle('');
     setAmount('');
+    setPaidAmount('');
     setBillingDate('');
     setDueDate('');
     setSubject('');
@@ -97,6 +112,7 @@ export default function RemindersList({
     setEditingId(item.id);
     setTitle(item.title);
     setAmount(item.amount.toString());
+    setPaidAmount((item.paidAmount || 0).toString());
     setBillingDate(item.billingDate || item.date || '');
     setDueDate(item.dueDate || item.date || '');
     setSubject(item.subject);
@@ -111,6 +127,7 @@ export default function RemindersList({
     setEditingId(null);
     setTitle('');
     setAmount('');
+    setPaidAmount('');
     setBillingDate('');
     setDueDate('');
     setSubject('');
@@ -145,21 +162,40 @@ export default function RemindersList({
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Amount (INR)</label>
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                  <IndianRupee className="w-4 h-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Amount (INR)</label>
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <IndianRupee className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Total"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
+                    required
+                  />
                 </div>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
-                  required
-                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Paid (INR)</label>
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <IndianRupee className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={paidAmount}
+                    onChange={(e) => setPaidAmount(e.target.value)}
+                    className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
+                  />
+                </div>
               </div>
             </div>
 
@@ -343,10 +379,21 @@ export default function RemindersList({
                       </div>
 
                       {/* Amounts line */}
-                      <div className="flex items-baseline justify-between mt-4">
-                        <div className="text-xs text-slate-500 dark:text-slate-400">
-                          Due Amount: <span className="font-semibold text-slate-800 dark:text-slate-200">₹{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <div className="flex flex-col gap-1 mt-4">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                          <span>Total Amount:</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">₹{item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                          <span>Paid:</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹{(item.paidAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        {(!item.completed && (item.amount - (item.paidAmount || 0) > 0)) && (
+                          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-50 dark:border-slate-800">
+                            <span className="font-medium text-rose-500">Remaining:</span>
+                            <span className="font-bold text-rose-600 dark:text-rose-400">₹{(item.amount - (item.paidAmount || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Date Indicator Badge */}
