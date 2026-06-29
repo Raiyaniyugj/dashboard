@@ -388,7 +388,7 @@ export default function TransactionList({
                 Expense: ₹{filteredTotals.expense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
               <span className="text-slate-900 dark:text-white font-bold">
-                Net: {filteredTotals.net >= 0 ? '+' : '-'}₹{Math.abs(filteredTotals.net).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Remaining Amount: {filteredTotals.net >= 0 ? '+' : '-'}₹{Math.abs(filteredTotals.net).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
