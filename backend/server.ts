@@ -3,8 +3,10 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
+import nodemailer from "nodemailer";
 import { TransactionModel } from "./models/Transaction.js";
 import { ReminderModel } from "./models/Reminder.js";
+import { UserModel } from "./models/User.js";
 import { protect, AuthRequest } from "./middleware/auth.js";
 import authRouter from "./routes/auth.js";
 
@@ -259,6 +261,91 @@ Please craft your advisory in clean, professional, and visually stunning Markdow
       error: "Advisory failed",
       message: err.message || "An error occurred while compiling your financial plan."
     });
+  }
+});
+
+// ─── Cron Jobs (Serverless) ───────────────────────────────────────────────────
+app.get("/api/cron/reminders", async (req, res) => {
+  try {
+    // Check for authorization (Vercel cron secret)
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      return res.status(500).json({ error: "SMTP credentials not configured." });
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
+
+    // Find reminders due within next 3 days
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    
+    // Normalize time for comparison
+    const targetDateStr = threeDaysFromNow.toISOString().split('T')[0];
+
+    // Find all incomplete, unnotified reminders where dueDate <= targetDateStr
+    const remindersToNotify = await ReminderModel.find({
+      completed: false,
+      notificationSent: false,
+      dueDate: { $lte: targetDateStr }
+    }).populate('userId');
+
+    let emailsSent = 0;
+
+    for (const reminder of remindersToNotify) {
+      const user = reminder.userId as any;
+      if (!user || !user.email) continue;
+
+      const remainingAmount = reminder.amount - (reminder.paidAmount || 0);
+
+      const mailOptions = {
+        from: `"Wealth Capital Alerts" <${process.env.SMTP_USER}>`,
+        to: user.email,
+        subject: `⚠️ Upcoming Bill Reminder: ${reminder.title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #4F46E5;">Wealth Capital - Bill Guard Alert</h2>
+            <p>Hello <strong>${user.name}</strong>,</p>
+            <p>This is a friendly automated reminder that you have an upcoming bill due very soon.</p>
+            
+            <div style="background-color: #F8FAFC; padding: 15px; border-radius: 8px; border-left: 4px solid #4F46E5; margin: 20px 0;">
+              <p style="margin: 5px 0;"><strong>Bill / Merchant:</strong> ${reminder.title}</p>
+              <p style="margin: 5px 0;"><strong>Due Date:</strong> ${new Date(reminder.dueDate).toLocaleDateString()}</p>
+              <p style="margin: 5px 0;"><strong>Total Amount:</strong> ₹${reminder.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+              <p style="margin: 5px 0;"><strong>Remaining Balance:</strong> <span style="color: #E11D48; font-weight: bold;">₹${remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></p>
+              ${reminder.subject ? `<p style="margin: 5px 0;"><strong>Notes:</strong> ${reminder.subject}</p>` : ''}
+            </div>
+            
+            <p>Please ensure you process the payment before the due date to avoid any late fees.</p>
+            <br/>
+            <p>Best regards,<br/><strong>Your Wealth Capital Assistant</strong></p>
+          </div>
+        `
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        reminder.notificationSent = true;
+        await reminder.save();
+        emailsSent++;
+      } catch (err) {
+        console.error(`Failed to send email to ${user.email}:`, err);
+      }
+    }
+
+    res.json({ success: true, message: `Cron executed. Sent ${emailsSent} emails.` });
+  } catch (err: any) {
+    console.error("Cron Error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 

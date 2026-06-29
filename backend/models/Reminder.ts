@@ -9,7 +9,8 @@ const ReminderSchema = new mongoose.Schema({
   billingDate: { type: String, required: true },
   dueDate: { type: String, required: true },
   subject: { type: String, default: '' },
-  completed: { type: Boolean, default: false }
+  completed: { type: Boolean, default: false },
+  notificationSent: { type: Boolean, default: false }
 }, { timestamps: true });
 
 export const ReminderModel = mongoose.model('Reminder', ReminderSchema);
