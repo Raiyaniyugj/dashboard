@@ -139,7 +139,7 @@ app.delete("/api/transactions/:id/permanent", protect, async (req: AuthRequest, 
 // ─── Reminders (protected) ────────────────────────────────────────────────────
 app.get("/api/reminders", protect, async (req: AuthRequest, res) => {
   try {
-    const list = await ReminderModel.find({ userId: req.userId }).sort({ date: 1 });
+    const list = await ReminderModel.find({ userId: req.userId }).sort({ dueDate: 1 });
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

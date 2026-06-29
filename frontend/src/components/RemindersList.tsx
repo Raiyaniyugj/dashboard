@@ -4,7 +4,7 @@ import { Bell, Calendar, Plus, Trash2, CheckCircle, Clock, Info, IndianRupee, Fi
 
 interface RemindersListProps {
   reminders: Reminder[];
-  onAddReminder: (title: string, amount: number, date: string, subject: string) => void;
+  onAddReminder: (title: string, amount: number, billingDate: string, dueDate: string, subject: string) => void;
   onToggleReminder: (id: string) => void;
   onDeleteReminder: (id: string) => void;
   onEditReminder: (id: string, payload: Partial<Reminder>) => void;
@@ -23,7 +23,8 @@ export default function RemindersList({
 }: RemindersListProps) {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
+  const [billingDate, setBillingDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [subject, setSubject] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [error, setError] = useState('');
@@ -50,7 +51,11 @@ export default function RemindersList({
       if (filter === 'active') return !r.completed;
       if (filter === 'completed') return r.completed;
       return true;
-    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }).sort((a, b) => {
+      const dateA = a.dueDate || a.date || '';
+      const dateB = b.dueDate || b.date || '';
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+    });
   }, [reminders, filter]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -68,22 +73,23 @@ export default function RemindersList({
       return;
     }
 
-    if (!date) {
-      setError('Please select a due date.');
+    if (!billingDate || !dueDate) {
+      setError('Please select both Billing Date and Due Date.');
       return;
     }
 
     if (editingId) {
-      onEditReminder(editingId, { title: title.trim(), amount: numAmount, date, subject: subject.trim() });
+      onEditReminder(editingId, { title: title.trim(), amount: numAmount, billingDate, dueDate, subject: subject.trim() });
       setEditingId(null);
     } else {
-      onAddReminder(title.trim(), numAmount, date, subject.trim());
+      onAddReminder(title.trim(), numAmount, billingDate, dueDate, subject.trim());
       notify('Successfully established a new bill reminder!', 'success');
     }
     
     setTitle('');
     setAmount('');
-    setDate('');
+    setBillingDate('');
+    setDueDate('');
     setSubject('');
   };
 
@@ -91,7 +97,8 @@ export default function RemindersList({
     setEditingId(item.id);
     setTitle(item.title);
     setAmount(item.amount.toString());
-    setDate(item.date);
+    setBillingDate(item.billingDate || item.date || '');
+    setDueDate(item.dueDate || item.date || '');
     setSubject(item.subject);
     
     const formElement = document.getElementById('create-reminder-card');
@@ -104,7 +111,8 @@ export default function RemindersList({
     setEditingId(null);
     setTitle('');
     setAmount('');
-    setDate('');
+    setBillingDate('');
+    setDueDate('');
     setSubject('');
     setError('');
   };
@@ -155,19 +163,37 @@ export default function RemindersList({
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due Date</label>
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                  <Calendar className="w-4 h-4" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Billing Date</label>
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="date"
+                    value={billingDate}
+                    onChange={(e) => setBillingDate(e.target.value)}
+                    className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
+                    required
+                  />
                 </div>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
-                  required
-                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due Date</label>
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <Calendar className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                  </div>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -251,7 +277,8 @@ export default function RemindersList({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredReminders.map((item) => {
-                const isOverdue = new Date(item.date).getTime() < new Date().setHours(0, 0, 0, 0) && !item.completed;
+                const targetDueDate = item.dueDate || item.date || '';
+                const isOverdue = targetDueDate ? new Date(targetDueDate).getTime() < new Date().setHours(0, 0, 0, 0) && !item.completed : false;
 
                 return (
                   <div
@@ -323,9 +350,15 @@ export default function RemindersList({
                       </div>
 
                       {/* Date Indicator Badge */}
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 mt-3 w-fit">
-                        <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                        <span>{new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 w-fit" title="Billing Date">
+                          <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                          <span>Bill: {item.billingDate ? new Date(item.billingDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : (item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A')}</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 text-[10px] font-mono border px-2 py-1 rounded-lg w-fit ${isOverdue ? 'border-rose-200 dark:border-rose-800/50 text-rose-500 bg-rose-50/50 dark:bg-rose-900/20' : 'text-slate-500 dark:text-slate-400 border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900/50'}`} title="Due Date">
+                          <Calendar className={`w-3 h-3 ${isOverdue ? 'text-rose-500' : 'text-slate-400 dark:text-slate-500'}`} />
+                          <span>Due: {item.dueDate ? new Date(item.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : (item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A')}</span>
+                        </div>
                       </div>
                     </div>
 
