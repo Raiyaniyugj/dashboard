@@ -15,13 +15,22 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.set('toJSON', { virtuals: true });
 
-if (!MONGODB_URI) {
-  console.warn("WARNING: MONGODB_URI is not set. Database operations will fail.");
-} else {
-  mongoose.connect(MONGODB_URI)
-    .then(() => console.log("Connected to MongoDB Atlas successfully!"))
-    .catch(err => console.error("MongoDB Connection Error:", err));
-}
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) return;
+  if (!MONGODB_URI) {
+    console.warn("WARNING: MONGODB_URI is not set. Database operations will fail.");
+    return;
+  }
+  try {
+    const db = await mongoose.connect(MONGODB_URI);
+    isConnected = db.connections[0].readyState === 1;
+    console.log("Connected to MongoDB Atlas successfully!");
+  } catch (err) {
+    console.error("MongoDB Connection Error:", err);
+  }
+};
 
 const app = express();
 app.use(cors({
@@ -35,6 +44,12 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// ─── Ensure DB Connection (Serverless Middleware) ─────────────────────────────
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
 
 // ─── Auth Routes (public) ─────────────────────────────────────────────────────
 app.use("/api/auth", authRouter);
