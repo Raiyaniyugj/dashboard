@@ -26,6 +26,7 @@ export default function RemindersList({
   const [paidAmount, setPaidAmount] = useState('');
   const [billingDate, setBillingDate] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [dueDays, setDueDays] = useState('');
   const [subject, setSubject] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [error, setError] = useState('');
@@ -53,11 +54,41 @@ export default function RemindersList({
       if (filter === 'completed') return r.completed;
       return true;
     }).sort((a, b) => {
+    }).sort((a, b) => {
       const dateA = a.dueDate || a.date || '';
       const dateB = b.dueDate || b.date || '';
       return new Date(dateA).getTime() - new Date(dateB).getTime();
     });
   }, [reminders, filter]);
+
+  const handleBillingDateChange = (dateStr: string) => {
+    setBillingDate(dateStr);
+    if (dateStr && dueDays) {
+      const date = new Date(dateStr);
+      date.setDate(date.getDate() + parseInt(dueDays, 10));
+      setDueDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDueDaysChange = (daysStr: string) => {
+    setDueDays(daysStr);
+    if (billingDate && daysStr) {
+      const date = new Date(billingDate);
+      date.setDate(date.getDate() + parseInt(daysStr, 10));
+      setDueDate(date.toISOString().split('T')[0]);
+    }
+  };
+
+  const handleDueDateChange = (dateStr: string) => {
+    setDueDate(dateStr);
+    if (billingDate && dateStr) {
+      const bill = new Date(billingDate);
+      const due = new Date(dateStr);
+      const diffTime = due.getTime() - bill.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDueDays(diffDays >= 0 ? diffDays.toString() : '');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +136,7 @@ export default function RemindersList({
     setPaidAmount('');
     setBillingDate('');
     setDueDate('');
+    setDueDays('');
     setSubject('');
   };
 
@@ -113,8 +145,18 @@ export default function RemindersList({
     setTitle(item.title);
     setAmount(item.amount.toString());
     setPaidAmount((item.paidAmount || 0).toString());
-    setBillingDate(item.billingDate || item.date || '');
-    setDueDate(item.dueDate || item.date || '');
+    const billDate = item.billingDate || item.date || '';
+    const dDate = item.dueDate || item.date || '';
+    setBillingDate(billDate);
+    setDueDate(dDate);
+    if (billDate && dDate) {
+      const bill = new Date(billDate);
+      const due = new Date(dDate);
+      const diffDays = Math.ceil((due.getTime() - bill.getTime()) / (1000 * 60 * 60 * 24));
+      setDueDays(diffDays >= 0 ? diffDays.toString() : '');
+    } else {
+      setDueDays('');
+    }
     setSubject(item.subject);
     
     const formElement = document.getElementById('create-reminder-card');
@@ -130,6 +172,7 @@ export default function RemindersList({
     setPaidAmount('');
     setBillingDate('');
     setDueDate('');
+    setDueDays('');
     setSubject('');
     setError('');
   };
@@ -209,7 +252,7 @@ export default function RemindersList({
                   <input
                     type="date"
                     value={billingDate}
-                    onChange={(e) => setBillingDate(e.target.value)}
+                    onChange={(e) => handleBillingDateChange(e.target.value)}
                     className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
                     required
                   />
@@ -217,19 +260,33 @@ export default function RemindersList({
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due Date</label>
+                <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due In (Days)</label>
                 <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                    <Calendar className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-                  </div>
                   <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
-                    required
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 5"
+                    value={dueDays}
+                    onChange={(e) => handleDueDaysChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">Due Date</label>
+              <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                  <Calendar className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                </div>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => handleDueDateChange(e.target.value)}
+                  className="w-full pl-9 pr-2 py-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-hidden"
+                  required
+                />
               </div>
             </div>
 
