@@ -42,7 +42,7 @@ app.use("/api/auth", authRouter);
 // ─── Transactions (protected) ─────────────────────────────────────────────────
 app.get("/api/transactions", protect, async (req: AuthRequest, res) => {
   try {
-    const list = await TransactionModel.find({ userId: req.userId }).sort({ date: -1 });
+    const list = await TransactionModel.find({ userId: req.userId, isDeleted: { $ne: true } }).sort({ date: -1 });
     res.json(list);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -75,8 +75,47 @@ app.put("/api/transactions/:id", protect, async (req: AuthRequest, res) => {
 
 app.delete("/api/transactions/:id", protect, async (req: AuthRequest, res) => {
   try {
-    await TransactionModel.findOneAndDelete({ _id: req.params.id, userId: req.userId });
-    res.json({ success: true });
+    const tx = await TransactionModel.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { isDeleted: true, deletedAt: new Date() },
+      { new: true }
+    );
+    if (!tx) return res.status(404).json({ error: "Transaction not found." });
+    res.json({ success: true, message: "Transaction moved to trash." });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// ─── Deleted Transactions (protected) ─────────────────────────────────────────
+app.get("/api/transactions/deleted/history", protect, async (req: AuthRequest, res) => {
+  try {
+    const list = await TransactionModel.find({ userId: req.userId, isDeleted: true }).sort({ deletedAt: -1 });
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/transactions/:id/restore", protect, async (req: AuthRequest, res) => {
+  try {
+    const tx = await TransactionModel.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { $set: { isDeleted: false }, $unset: { deletedAt: 1 } },
+      { new: true }
+    );
+    if (!tx) return res.status(404).json({ error: "Transaction not found." });
+    res.json({ success: true, message: "Transaction restored.", transaction: tx });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete("/api/transactions/:id/permanent", protect, async (req: AuthRequest, res) => {
+  try {
+    const tx = await TransactionModel.findOneAndDelete({ _id: req.params.id, userId: req.userId, isDeleted: true });
+    if (!tx) return res.status(404).json({ error: "Transaction not found." });
+    res.json({ success: true, message: "Transaction permanently deleted." });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

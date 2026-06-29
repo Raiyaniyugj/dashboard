@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Save, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import DeletedEntriesHistory from './DeletedEntriesHistory';
 
 interface ProfileSettingsProps {
   onShowToast: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -176,6 +177,8 @@ export default function ProfileSettings({ onShowToast }: ProfileSettingsProps) {
           </div>
         </form>
       </div>
+
+      <DeletedEntriesHistory onShowToast={onShowToast} />
     </div>
   );
 }

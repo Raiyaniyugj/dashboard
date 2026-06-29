@@ -5,6 +5,8 @@ export interface Transaction {
   title: string;
   date: string; // YYYY-MM-DD
   note: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Category {

@@ -6,7 +6,9 @@ const TransactionSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   title: { type: String, required: true },
   date: { type: String, required: true },
-  note: { type: String, default: '' }
+  note: { type: String, default: '' },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date }
 }, { timestamps: true });
 
 export const TransactionModel = mongoose.model('Transaction', TransactionSchema);
