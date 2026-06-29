@@ -10,6 +10,7 @@ export default function ProfileSettings({ onShowToast }: ProfileSettingsProps) {
   const { user, updateUser, authFetch } = useAuth();
   
   const [name, setName] = useState(user?.name || '');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +33,9 @@ export default function ProfileSettings({ onShowToast }: ProfileSettingsProps) {
       const payload: any = { name };
       if (password) {
         payload.password = password;
+        if (currentPassword) {
+          payload.currentPassword = currentPassword;
+        }
       }
 
       const res = await authFetch('/api/auth/profile', {
@@ -47,6 +51,7 @@ export default function ProfileSettings({ onShowToast }: ProfileSettingsProps) {
 
       updateUser(data.user);
       onShowToast('Profile updated successfully!', 'success');
+      setCurrentPassword('');
       setPassword('');
       setConfirmPassword('');
       
@@ -111,6 +116,19 @@ export default function ProfileSettings({ onShowToast }: ProfileSettingsProps) {
               </h3>
               
               <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
+                    Current Password (Required if set)
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-shadow"
+                    placeholder="Enter your current password"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
                     New Password

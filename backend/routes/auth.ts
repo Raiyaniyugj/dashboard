@@ -170,13 +170,24 @@ router.post('/reset-password/:token', async (req, res) => {
 // ─── Update Profile ──────────────────────────────────────────────────────────
 router.put('/profile', protect, async (req: AuthRequest, res) => {
   try {
-    const { name, password } = req.body;
+    const { name, password, currentPassword } = req.body;
     const user = await UserModel.findById(req.userId);
     
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
     if (name) user.name = name;
+    
     if (password) {
+      if (user.password) {
+        if (!currentPassword) {
+          return res.status(400).json({ error: 'Current password is required to set a new password.' });
+        }
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          return res.status(401).json({ error: 'Incorrect current password.' });
+        }
+      }
+      
       if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
       user.password = password;
     }
