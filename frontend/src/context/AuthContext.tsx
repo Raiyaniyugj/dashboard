@@ -15,6 +15,7 @@ interface AuthContextType {
   loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void;
   authFetch: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
@@ -99,6 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    const remember = !!localStorage.getItem('wc_auth_token');
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem('wc_auth_user', JSON.stringify(updatedUser));
+  };
+
   const authFetch = useCallback((url: string, options: RequestInit = {}): Promise<Response> => {
     const currentToken =
       token ||
@@ -116,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, register, logout, authFetch }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, register, logout, updateUser, authFetch }}>
       {children}
     </AuthContext.Provider>
   );

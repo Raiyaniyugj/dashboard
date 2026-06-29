@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import TransactionModal from './components/TransactionModal';
 import TransactionList from './components/TransactionList';
 import RemindersList from './components/RemindersList';
+import ProfileSettings from './components/ProfileSettings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Login from './pages/Login';
@@ -297,10 +298,13 @@ function AppContent() {
 
             {/* User badge + logout */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-semibold select-none border border-slate-800 dark:border-slate-200 shadow-xs">
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 rounded-xl text-xs font-semibold select-none border border-slate-800 dark:border-slate-200 shadow-xs transition cursor-pointer"
+              >
                 <User className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600" />
                 <span className="hidden sm:inline max-w-[120px] truncate">{user.name}</span>
-              </div>
+              </button>
               <button
                 onClick={() => {
                   showConfirm('Are you sure you want to sign out?', logout, 'Sign Out');
@@ -370,6 +374,9 @@ function AppContent() {
               onShowToast={showToast}
               onShowConfirm={showConfirm}
             />
+          )}
+          {activeTab === 'profile' && (
+            <ProfileSettings onShowToast={showToast} />
           )}
         </div>
       </main>

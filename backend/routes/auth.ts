@@ -167,4 +167,29 @@ router.post('/reset-password/:token', async (req, res) => {
   }
 });
 
+// ─── Update Profile ──────────────────────────────────────────────────────────
+router.put('/profile', protect, async (req: AuthRequest, res) => {
+  try {
+    const { name, password } = req.body;
+    const user = await UserModel.findById(req.userId);
+    
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    if (name) user.name = name;
+    if (password) {
+      if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+      user.password = password;
+    }
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully.',
+      user: { id: user._id, name: user.name, email: user.email }
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
