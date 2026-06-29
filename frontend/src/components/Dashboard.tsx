@@ -135,7 +135,7 @@ export default function Dashboard({ transactions, onNavigateToTab }: DashboardPr
         {/* Net Worth */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xs space-y-3" id="net-balance-card">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Remaining Amount</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">Net Balance</span>
             <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
               <Wallet className="w-4 h-4" />
             </div>
